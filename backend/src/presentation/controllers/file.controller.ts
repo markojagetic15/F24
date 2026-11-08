@@ -11,9 +11,17 @@ import {
   Query,
 } from '@nestjs/common';
 import { FileService } from '../../application/file.service.js';
-import { CreateFileBody, ListFilesQuery } from '../dto/file.dto.js';
+import { CreateFileBody, ListFilesQuery, ROOT_PARENT_ID, SearchFilesQuery } from '../dto/file.dto.js';
 import type { File } from '../../domain/entities/file.entity.js';
 import type { Page } from '../../domain/pagination.js';
+import { FileSearchScope } from '../../domain/repositories/file.interface.js';
+
+function toSearchScope(parentId?: string): FileSearchScope {
+  if (parentId === undefined) {
+    return 'all';
+  };
+  return { parentId: parentId === ROOT_PARENT_ID ? null : parentId };
+}
 
 @Controller('files')
 export class FilesController {
@@ -28,7 +36,7 @@ export class FilesController {
   async list(@Query() query: ListFilesQuery): Promise<Page<File>> {
     return this.files.list(query.parentId ?? null, {
       limit: query.limit,
-      offset: query.offset,
+      cursor: query.cursor,
     });
   }
 
@@ -36,5 +44,13 @@ export class FilesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.files.delete(id);
+  }
+
+  @Get('search')
+  async search(@Query() query: SearchFilesQuery): Promise<Page<File>> {
+    return this.files.search(toSearchScope(query.parentId), query.name, {
+      limit: query.limit,
+      cursor: query.cursor,
+    });
   }
 }

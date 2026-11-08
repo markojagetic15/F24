@@ -46,20 +46,18 @@ export class PostgresFolderRepository implements FolderRepository {
   }
 
   async listChildren(
-    parentId: string | null,
-    page: PageRequest,
+      parentId: string | null,
+      page: PageRequest,
   ): Promise<Page<Folder>> {
-    const [records, total] = await Promise.all([
-      this.prisma.folder.findMany({
-        where: { parentId },
-        orderBy: { name: 'asc' },
-        skip: page.offset,
-        take: page.limit,
-      }),
-      this.prisma.folder.count({ where: { parentId } }),
-    ]);
-
-    return toPage(records.map(toFolder), page.limit, total);
+    const records = await this.prisma.folder.findMany({
+      where: {
+        parentId,
+        ...(page.cursor === undefined ? {} : { name: { gt: page.cursor } }),
+      },
+      orderBy: { name: 'asc' },
+      take: page.limit + 1,
+    });
+    return toPage(records.map(toFolder), page.limit, (folder) => folder.name);
   }
 
   async findById(id: string): Promise<Folder | null> {

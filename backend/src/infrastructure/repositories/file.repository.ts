@@ -9,7 +9,7 @@ import {
   type PageRequest,
   toPage,
 } from '../../domain/pagination.js';
-import type { FileRepository } from '../../domain/repositories/file.interface.js';
+import type { FileRepository, FileSearchScope } from '../../domain/repositories/file.interface.js';
 import {
   isForeignKeyViolation,
   isRecordNotFound,
@@ -38,19 +38,15 @@ export class PostgresFileRepository implements FileRepository {
   }
 
   async list(parentId: string | null, page: PageRequest): Promise<Page<File>> {
-    const where = { parentId };
-
-    const [records, total] = await Promise.all([
-      this.prisma.file.findMany({
-        where,
-        orderBy: { name: 'asc' },
-        skip: page.offset,
-        take: page.limit,
-      }),
-      this.prisma.file.count({ where }),
-    ]);
-
-    return toPage(records.map(toFile), page.limit, total);
+    const records = await this.prisma.file.findMany({
+      where: {
+        parentId,
+        ...(page.cursor === undefined ? {} : { name: { gt: page.cursor } }),
+      },
+      orderBy: { name: 'asc' },
+      take: page.limit + 1,
+    });
+    return toPage(records.map(toFile), page.limit, (file) => file.name);
   }
 
   async delete(id: string): Promise<void> {
@@ -60,5 +56,22 @@ export class PostgresFileRepository implements FileRepository {
       if (isRecordNotFound(error)) throw new EntryNotFoundError('File', id);
       throw error;
     }
+  }
+
+  async search(
+    scope: FileSearchScope,
+    name: string,
+    page: PageRequest,
+  ): Promise<Page<File>> {
+    const records = await this.prisma.file.findMany({
+      where: {
+        name,
+        ...(scope === 'all' ? {} : { parentId: scope.parentId }),
+        ...(page.cursor === undefined ? {} : { id: { gt: page.cursor } }),
+      },
+      orderBy: { id: 'asc' },
+      take: page.limit + 1,
+    });
+    return toPage(records.map(toFile), page.limit, (file) => file.id);
   }
 }
