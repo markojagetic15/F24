@@ -7,6 +7,7 @@ import {
 import {
   type Page,
   type PageRequest,
+  TOP_SEARCH_LIMIT,
   toPage,
 } from '../../domain/pagination.js';
 import type {
@@ -20,7 +21,6 @@ import {
 } from '../database/prisma-errors.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { toFile } from './file.mapper.js';
-import { TOP_SEARCH_LIMIT } from '../../presentation/dto/file.dto.js';
 
 @Injectable()
 export class PostgresFileRepository implements FileRepository {

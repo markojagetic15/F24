@@ -7,8 +7,8 @@ import { FoldersController } from './presentation/controllers/folder.controller.
 import { PostgresFileRepository } from './infrastructure/repositories/file.repository.js';
 import { FileService } from './application/file.service.js';
 import { FilesController } from './presentation/controllers/file.controller.js';
-import { UnexpectedErrorFilter } from './domain/filters/unexpected-error.filter.js';
-import { DomainErrorFilter } from './domain/filters/domain-error.filter.js';
+import { UnexpectedErrorFilter } from './presentation/filters/unexpected-error.filter.js';
+import { DomainErrorFilter } from './presentation/filters/domain-error.filter.js';
 import { APP_FILTER } from '@nestjs/core';
 
 @Module({

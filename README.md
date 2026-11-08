@@ -65,10 +65,10 @@ DDD architecture was used for backend and Feature-Sliced Design for frontend.
 ```
 backend/
   prisma/            schema and migrations
-  src/domain/        entities, errors, error filters, name validators, pagination, repository interfaces
+  src/domain/        entities, errors, name validators, pagination, repository interfaces
   src/application/   services with the use cases
   src/infrastructure/  Prisma client and PostgreSQL repositories
-  src/presentation/  controllers and DTOs
+  src/presentation/  controllers, DTOs and error filters
   test/              end-to-end tests
 frontend/
   src/app/           query client, URL state
@@ -209,7 +209,10 @@ For a `400` from validation, `message` is an array with one entry per problem.
 
 **Folder depth limit** - there is no folder depth limit, user can create as infinite subfolders. In windows there is no limit for depth but there is a limit for path char length 
 
+**Deleting a large folder** - `ON DELETE CASCADE` removes the whole subtree in one transaction, so a delete cannot leave orphans or finish halfway. The cost is that a very large subtree holds its locks for longer and can reach `DB_QUERY_TIMEOUT_MS`. The delete then rolls back and returns `500`. A larger deployment should mark the folder as deleted first and remove its contents in background batches
+
 ## Known limitations
 
+- The frontend has no automated tests - only the backend has unit and end-to-end tests
 - There is no rate limiting - it should be added for a production environment
 - Folder depth is not limited - in windows there is no folder depth limit but there is a limit to path char length

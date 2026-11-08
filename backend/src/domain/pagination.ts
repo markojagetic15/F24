@@ -7,6 +7,8 @@ export interface PageRequest {
   cursor?: string;
 }
 
+export const TOP_SEARCH_LIMIT = 10;
+
 export interface Page<T> {
   items: T[];
   nextCursor: string | null;

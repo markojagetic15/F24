@@ -1,11 +1,10 @@
-import 'reflect-metadata';
 import { File } from '../../domain/entities/file.entity.js';
 import {
   EntryNameConflictError,
   EntryNotFoundError,
 } from '../../domain/errors/domain.errors.js';
+import { TOP_SEARCH_LIMIT } from '../../domain/pagination.js';
 import type { FileSearchScope } from '../../domain/repositories/file.interface.js';
-import { TOP_SEARCH_LIMIT } from '../../presentation/dto/file.dto.js';
 import { Prisma } from '../database/generated/client.js';
 import type { PrismaService } from '../database/prisma.service.js';
 import { PostgresFileRepository } from './file.repository.js';

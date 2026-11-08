@@ -15,7 +15,6 @@ import {
 } from '../../domain/validators/name.validator.js';
 
 export const ROOT_PARENT_ID = 'root';
-export const TOP_SEARCH_LIMIT = 10;
 
 // A folder id or `root`. Leaving it out searches all files
 const IsSearchParent = () =>

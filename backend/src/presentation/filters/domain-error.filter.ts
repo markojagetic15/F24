@@ -9,7 +9,7 @@ import {
   DomainError,
   EntryNameConflictError,
   EntryNotFoundError,
-} from '../errors/domain.errors.js';
+} from '../../domain/errors/domain.errors.js';
 
 function statusOf(error: DomainError): HttpStatus {
   if (error instanceof EntryNotFoundError) return HttpStatus.NOT_FOUND;
