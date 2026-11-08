@@ -183,15 +183,30 @@ describe('PostgresFileRepository', () => {
   });
 
   describe('findByName', () => {
-    it('takes the top matches by name, then id', async () => {
-      await repository.findByName('rep');
+    it.each<[string, FileSearchScope, object]>([
+      ['all files', 'all', { name: { startsWith: 'rep' } }],
+      [
+        'the root',
+        { parentId: null },
+        { name: { startsWith: 'rep' }, parentId: null },
+      ],
+      [
+        'one folder',
+        { parentId: PARENT_ID },
+        { name: { startsWith: 'rep' }, parentId: PARENT_ID },
+      ],
+    ])(
+      'takes the top matches in %s by name, then id',
+      async (_l, scope, where) => {
+        await repository.findByName(scope, 'rep');
 
-      expect(file.findMany).toHaveBeenCalledWith({
-        where: { name: { startsWith: 'rep' } },
-        orderBy: [{ name: 'asc' }, { id: 'asc' }],
-        take: TOP_SEARCH_LIMIT,
-      });
-    });
+        expect(file.findMany).toHaveBeenCalledWith({
+          where,
+          orderBy: [{ name: 'asc' }, { id: 'asc' }],
+          take: TOP_SEARCH_LIMIT,
+        });
+      },
+    );
 
     it.each([
       ['percent', '100%', '100\\%'],
@@ -199,7 +214,7 @@ describe('PostgresFileRepository', () => {
       ['backslash', 'a\\b', 'a\\\\b'],
       ['every occurrence', '%_%', '\\%\\_\\%'],
     ])('escapes %s for LIKE', async (_label, name, escaped) => {
-      await repository.findByName(name);
+      await repository.findByName('all', name);
 
       expect(file.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: { name: { startsWith: escaped } } }),
@@ -209,7 +224,7 @@ describe('PostgresFileRepository', () => {
     it('returns entities', async () => {
       file.findMany.mockResolvedValue([recordOf(ID, 'a.txt')]);
 
-      await expect(repository.findByName('a')).resolves.toEqual([
+      await expect(repository.findByName('all', 'a')).resolves.toEqual([
         new File(ID, 'a.txt', null, new Date(0)),
       ]);
     });

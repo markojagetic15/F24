@@ -1,3 +1,4 @@
+import { applyDecorators } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import {
   IsInt,
@@ -15,6 +16,16 @@ import {
 
 export const ROOT_PARENT_ID = 'root';
 export const TOP_SEARCH_LIMIT = 10;
+
+// A folder id or `root`. Leaving it out searches all files
+const IsSearchParent = () =>
+  applyDecorators(
+    ValidateIf(
+      (_query: object, value: unknown) =>
+        value !== undefined && value !== ROOT_PARENT_ID,
+    ),
+    IsUUID(),
+  );
 
 export class CreateFileBody {
   @IsName(MAX_FILE_NAME_LENGTH)
@@ -47,11 +58,7 @@ export class SearchFilesQuery {
   @IsName(MAX_FILE_NAME_LENGTH)
   name: string;
 
-  @ValidateIf(
-    (query: SearchFilesQuery) =>
-      query.parentId !== undefined && query.parentId !== ROOT_PARENT_ID,
-  )
-  @IsUUID()
+  @IsSearchParent()
   parentId?: string;
 
   @IsOptional()
@@ -69,4 +76,7 @@ export class SearchFilesQuery {
 export class TopFilesQuery {
   @IsNamePrefix(MAX_FILE_NAME_LENGTH)
   prefix: string;
+
+  @IsSearchParent()
+  parentId?: string;
 }

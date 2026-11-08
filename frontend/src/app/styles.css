@@ -1,0 +1,316 @@
+:root {
+  --ink: #1f2328;
+  --muted: #68717c;
+  --line: #e2e5e9;
+  --hover: #f3f5f7;
+  --accent: #0b63ce;
+  --danger: #b3261e;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--ink);
+  font:
+    14px/1.45 -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+
+h1,
+h2,
+p,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  list-style: none;
+}
+
+button,
+input,
+select {
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+button {
+  padding: 0 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+button:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+input {
+  min-width: 0;
+  padding: 0 8px;
+}
+
+select {
+  padding: 0 4px;
+}
+
+input::placeholder {
+  color: var(--muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+[role='alert'] {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar__home {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 600;
+}
+
+.topbar__home:hover:not(:disabled) {
+  background: none;
+  color: var(--accent);
+}
+
+.search {
+  position: relative;
+  display: flex;
+  flex: 0 1 480px;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.search input {
+  flex: 1;
+}
+
+.suggestions {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 2px);
+  right: 0;
+  left: 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: #fff;
+}
+
+.suggestions--empty {
+  padding: 6px 10px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.suggestions button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+}
+
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 20px 24px 48px;
+}
+
+.page__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.page__title h1 {
+  overflow: hidden;
+  font-size: 20px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 24px;
+  margin-bottom: 8px;
+}
+
+.create-form {
+  display: flex;
+  flex: 0 1 310px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.create-form input {
+  width: 180px;
+}
+
+.create-form [role='alert'] {
+  flex-basis: 100%;
+}
+
+.entries {
+  margin-top: 20px;
+}
+
+.entries h2 {
+  padding-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.entries__note {
+  padding: 8px 0;
+  color: var(--muted);
+}
+
+.entries__more {
+  margin-top: 10px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 6px;
+}
+
+.row:hover {
+  background: #e5f3ff;
+}
+
+.row--head {
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.row--head:hover {
+  background: none;
+}
+
+.row--head .row__name {
+  padding-left: 24px;
+}
+
+.row svg,
+.suggestions svg {
+  flex: none;
+}
+
+.row__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.row__name {
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+
+button.row__name:hover:not(:disabled) {
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.row__date,
+.row__type {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row__date {
+  flex: 0 0 110px;
+}
+
+.row__type {
+  flex: 0 0 110px;
+}
+
+.row__actions {
+  display: flex;
+  flex: 0 0 110px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.row__actions button {
+  height: 24px;
+  padding: 0 8px;
+  background: #fff;
+  font-size: 13px;
+}
+
+.delete-button {
+  opacity: 0;
+}
+
+.row:hover .delete-button,
+.delete-button:focus-visible {
+  opacity: 1;
+}
+
+.row__actions .delete-button:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: #fff;
+  color: var(--danger);
+}
+
+@media (hover: none) {
+  .delete-button {
+    opacity: 1;
+  }
+}

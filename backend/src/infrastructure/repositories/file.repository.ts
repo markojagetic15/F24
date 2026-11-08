@@ -79,9 +79,12 @@ export class PostgresFileRepository implements FileRepository {
     return toPage(records.map(toFile), page.limit, (file) => file.id);
   }
 
-  async findByName(name: string): Promise<File[]> {
+  async findByName(scope: FileSearchScope, name: string): Promise<File[]> {
     const records = await this.prisma.file.findMany({
-      where: { name: { startsWith: name.replace(/[\\%_]/g, '\\$&') } },
+      where: {
+        name: { startsWith: name.replace(/[\\%_]/g, '\\$&') },
+        ...(scope === 'all' ? {} : { parentId: scope.parentId }),
+      },
       orderBy: [{ name: 'asc' }, { id: 'asc' }],
       take: TOP_SEARCH_LIMIT,
     });

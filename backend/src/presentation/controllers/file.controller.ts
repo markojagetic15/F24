@@ -62,6 +62,6 @@ export class FilesController {
 
   @Get('top')
   async top(@Query() query: TopFilesQuery): Promise<File[]> {
-    return this.files.top(query.prefix);
+    return this.files.top(toSearchScope(query.parentId), query.prefix);
   }
 }
