@@ -1,6 +1,7 @@
 import { ValidateBy } from 'class-validator';
 
-export const MAX_NAME_LENGTH = 248;
+export const MAX_FOLDER_NAME_LENGTH = 248;
+export const MAX_FILE_NAME_LENGTH = 255;
 
 // Not allowed symbols:
 // `/` - separator for Linux and macOS based systems - let's take for example

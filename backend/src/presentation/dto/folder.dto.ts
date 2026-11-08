@@ -1,9 +1,12 @@
 import { IsOptional, IsUUID, Min, IsInt, Max } from 'class-validator';
-import { IsName, MAX_NAME_LENGTH } from '../validators/name.validator.js';
+import {
+  IsName,
+  MAX_FOLDER_NAME_LENGTH,
+} from '../validators/name.validator.js';
 import { Type } from 'class-transformer';
 
 export class CreateFolderBody {
-  @IsName(MAX_NAME_LENGTH)
+  @IsName(MAX_FOLDER_NAME_LENGTH)
   name: string;
 
   @IsOptional()

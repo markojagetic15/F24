@@ -16,7 +16,22 @@ model Folder {
 
   parent   Folder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
   children Folder[] @relation("FolderTree")
+  files    File[]
 
   @@unique([parentId, name])
   @@map("folders")
+}
+
+model File {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  // name limit is taken from Windows File Explorer limitation
+  name      String   @db.VarChar(255)
+  parentId  String?  @map("parent_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  parent Folder? @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, name])
+  @@index([name, id])
+  @@map("files")
 }
