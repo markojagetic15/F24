@@ -4,7 +4,7 @@ This is a take-home task for Software Engineer position in F24.
 
 It involves building a Dropbox-like application for creating, deleting and navigating folders and files
 
-**Stack:** NestJS 12, Prisma 7, PostgreSQL 16, React 19, Vite, Docker Compose.
+**Stack:** NestJS 12, Prisma 7, PostgreSQL 16, React 19, TanStack Query, Vite, Docker Compose.
 
 **Instructions how to ge started are down below**
 
@@ -43,7 +43,7 @@ npm run start:debug
 
 The API runs on `http://localhost:3001/api`, and a debugger can attach to the Node inspector on port `9229`.
 
-**3. Start the frontend** in a second terminal. It runs on `http://localhost:5173`:
+**3. Start the frontend** in a second terminal. It runs on `http://localhost:5173` and forwards `/api` requests to the backend:
 
 ```bash
 cd frontend
@@ -60,7 +60,7 @@ npm run test:e2e    # needs PostgreSQL, creates and uses f24_filesystem_test
 
 ## Structure of codebase  
 
-DDD architecture was used for backend and basic architecture for frontend.
+DDD architecture was used for backend and Feature-Sliced Design for frontend.
 
 ```
 backend/
@@ -71,9 +71,12 @@ backend/
   src/presentation/  controllers and DTOs
   test/              end-to-end tests
 frontend/
-  src/api/           API client
-  src/components/    views and forms
-  src/hooks/         data loading and URL state
+  src/app/           query client, URL state
+  src/pages/         the folder page
+  src/widgets/       folder contents: forms and lists together
+  src/features/      user actions: create, delete, search
+  src/entities/      folder and file: API calls, queries, rows
+  src/shared/        HTTP client, reusable UI, helpers
 ```
 
 ## API Documentation
@@ -155,11 +158,12 @@ curl 'http://localhost:3001/api/files/search?name=report.pdf&parentId=root'
 
 ### Search box suggestions: `GET /files/top`
 
-Returns up to 10 files across all folders whose name starts with `prefix`, case-sensitive, sorted by name.
+Returns up to 10 files whose name starts with `prefix`, case-sensitive, sorted by name.
 
 | Query parameter | Required | Description |
 |---|---|---|
 | `prefix` | yes | 1-255 characters, without slashes, backslashes or control characters |
+| `parentId` | no | UUID of a folder, or `root` for the root only. Leave out to search all files |
 
 ```bash
 curl 'http://localhost:3001/api/files/top?prefix=rep'
@@ -203,8 +207,9 @@ For a `400` from validation, `message` is an array with one entry per problem.
 
 **Alphabetical sorting** - lists are sorted by name, like the default view in Windows. Names are compared bytewise (`COLLATE "C"`), so a "starts with" search can use the index. The cost is that upper case sorts before lower case (`Zebra` comes before `apple`)
 
+**Folder depth limit** - there is no folder depth limit, user can create as infinite subfolders. In windows there is no limit for depth but there is a limit for path char length 
+
 ## Known limitations
 
-- After creating or deleting an entry, lists return to the first page.
 - There is no rate limiting - it should be added for a production environment
 - Folder depth is not limited - in windows there is no folder depth limit but there is a limit to path char length

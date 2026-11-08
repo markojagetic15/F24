@@ -32,13 +32,18 @@ export class FileService {
     name: string,
     page: PageRequest,
   ): Promise<Page<File>> {
-    if (scope !== 'all' && scope.parentId !== null) {
-      await this.folders.doesFolderExist(scope.parentId);
-    }
+    await this.assertScopeExists(scope);
     return this.files.search(scope, name, page);
   }
 
-  async top(name: string): Promise<File[]> {
-    return this.files.findByName(name);
+  async top(scope: FileSearchScope, name: string): Promise<File[]> {
+    await this.assertScopeExists(scope);
+    return this.files.findByName(scope, name);
+  }
+
+  private async assertScopeExists(scope: FileSearchScope): Promise<void> {
+    if (scope !== 'all' && scope.parentId !== null) {
+      await this.folders.doesFolderExist(scope.parentId);
+    }
   }
 }

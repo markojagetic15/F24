@@ -608,6 +608,51 @@ describe('Files API', () => {
       expect(await top('gone')).toEqual([]);
     });
 
+    describe('within a location', () => {
+      const topIn = async (prefix: string, parentId: string) => {
+        const response = await api()
+          .get('/api/files/top')
+          .query({ prefix, parentId })
+          .expect(200);
+        return namesOf(response.body as { name: string }[]);
+      };
+
+      it('searches only the given folder, not its subfolders or siblings', async () => {
+        const parent = await createFolder('parent');
+        const child = await createFolder('child', parent.id);
+        const sibling = await createFolder('sibling');
+        await createFile('rep-parent', parent.id);
+        await createFile('rep-child', child.id);
+        await createFile('rep-sibling', sibling.id);
+        await createFile('rep-root');
+
+        expect(await topIn('rep', parent.id)).toEqual(['rep-parent']);
+      });
+
+      it('searches only the root for parentId=root', async () => {
+        const folder = await createFolder('docs');
+        await createFile('rep-folder', folder.id);
+        await createFile('rep-root');
+
+        expect(await topIn('rep', 'root')).toEqual(['rep-root']);
+      });
+
+      it('finds a match that the all-files top 10 would cut off', async () => {
+        const folder = await createFolder('docs');
+        for (let i = 0; i < 12; i += 1) await createFile(`a${i}`);
+        await createFile('az-in-folder', folder.id);
+
+        expect(await topIn('a', folder.id)).toEqual(['az-in-folder']);
+      });
+
+      it('returns 404 for a parent that does not exist', async () => {
+        await api()
+          .get('/api/files/top')
+          .query({ prefix: 'a', parentId: randomUUID() })
+          .expect(404);
+      });
+    });
+
     it.each([
       ['missing prefix', ''],
       ['empty prefix', 'prefix='],
@@ -619,7 +664,10 @@ describe('Files API', () => {
       ['newline', 'prefix=a%0Ab'],
       ['prefix over the limit', `prefix=${'a'.repeat(256)}`],
       ['a limit, which is fixed at 10', 'prefix=a&limit=50'],
-      ['a parent, which is not supported', `prefix=a&parentId=${randomUUID()}`],
+      ['malformed parent', 'prefix=a&parentId=nope'],
+      ['empty parent, which must not mean all files', 'prefix=a&parentId='],
+      ['root in the wrong case', 'prefix=a&parentId=ROOT'],
+      ['repeated parent', 'prefix=a&parentId=root&parentId=root'],
     ])('returns 400 for %s', async (_label, query) => {
       await api().get(`/api/files/top?${query}`).expect(400);
     });

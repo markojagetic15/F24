@@ -110,10 +110,35 @@ describe('FileService', () => {
     });
   });
 
-  it('finds the top matches through the repository', async () => {
-    repository.findByName.mockResolvedValue([FILE]);
+  describe('top', () => {
+    it.each<[string, FileSearchScope]>([
+      ['all files', 'all'],
+      ['the root', { parentId: null }],
+    ])('searches %s without looking up a folder', async (_label, scope) => {
+      repository.findByName.mockResolvedValue([FILE]);
 
-    await expect(service.top('a')).resolves.toEqual([FILE]);
-    expect(repository.findByName).toHaveBeenCalledWith('a');
+      await expect(service.top(scope, 'a')).resolves.toEqual([FILE]);
+      expect(folders.doesFolderExist).not.toHaveBeenCalled();
+      expect(repository.findByName).toHaveBeenCalledWith(scope, 'a');
+    });
+
+    it('searches a folder that exists', async () => {
+      repository.findByName.mockResolvedValue([FILE]);
+
+      await service.top({ parentId: FOLDER_ID }, 'a');
+
+      expect(folders.doesFolderExist).toHaveBeenCalledWith(FOLDER_ID);
+    });
+
+    it('fails without searching when the folder does not exist', async () => {
+      folders.doesFolderExist.mockRejectedValue(
+        new EntryNotFoundError('Folder', FOLDER_ID),
+      );
+
+      await expect(service.top({ parentId: FOLDER_ID }, 'a')).rejects.toThrow(
+        EntryNotFoundError,
+      );
+      expect(repository.findByName).not.toHaveBeenCalled();
+    });
   });
 });
