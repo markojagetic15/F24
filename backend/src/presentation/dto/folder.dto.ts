@@ -2,7 +2,7 @@ import { IsOptional, IsUUID, Min, IsInt, Max } from 'class-validator';
 import {
   IsName,
   MAX_FOLDER_NAME_LENGTH,
-} from '../validators/name.validator.js';
+} from '../../domain/validators/name.validator.js';
 import { Type } from 'class-transformer';
 
 export class CreateFolderBody {

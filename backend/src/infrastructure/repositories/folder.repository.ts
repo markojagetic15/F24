@@ -52,12 +52,12 @@ export class PostgresFolderRepository implements FolderRepository {
     const records = await this.prisma.folder.findMany({
       where: {
         parentId,
-        ...(page.cursor === undefined ? {} : { name: { gt: page.cursor } }),
+        ...(page.cursor === undefined ? {} : { id: { lt: page.cursor } }),
       },
-      orderBy: { name: 'asc' },
+      orderBy: { id: 'desc' },
       take: page.limit + 1,
     });
-    return toPage(records.map(toFolder), page.limit, (folder) => folder.name);
+    return toPage(records.map(toFolder), page.limit, (folder) => folder.id);
   }
 
   async findById(id: string): Promise<Folder | null> {
