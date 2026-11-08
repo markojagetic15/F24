@@ -7,6 +7,9 @@ export default defineConfig({
     include: ['test/**/*.e2e-spec.ts'],
     globalSetup: ['test/support/global-setup.ts'],
     fileParallelism: false,
-    env: { DATABASE_URL: process.env.TEST_DATABASE_URL ?? '' },
+    env: {
+      DATABASE_URL: process.env.TEST_DATABASE_URL ?? '',
+      RATE_LIMIT_PER_MINUTE: '1000000',
+    },
   },
 });

@@ -10,6 +10,8 @@ describe('appConfig', () => {
       dbPoolSize: 10,
       dbConnectTimeoutMs: 5000,
       dbQueryTimeoutMs: 30000,
+      rateLimitPerMinute: 600,
+      trustProxyHops: 0,
     });
   });
 
@@ -21,6 +23,8 @@ describe('appConfig', () => {
         DB_POOL_SIZE: '20',
         DB_CONNECT_TIMEOUT_MS: '1000',
         DB_QUERY_TIMEOUT_MS: '2000',
+        RATE_LIMIT_PER_MINUTE: '50',
+        TRUST_PROXY_HOPS: '1',
       }),
     ).toEqual({
       databaseUrl: DATABASE_URL,
@@ -28,6 +32,8 @@ describe('appConfig', () => {
       dbPoolSize: 20,
       dbConnectTimeoutMs: 1000,
       dbQueryTimeoutMs: 2000,
+      rateLimitPerMinute: 50,
+      trustProxyHops: 1,
     });
   });
 

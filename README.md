@@ -177,6 +177,7 @@ curl 'http://localhost:3001/api/files/top?prefix=rep'
 | `404` | The folder or file does not exist | `EntryNotFoundError` |
 | `409` | The name is already used in that location | `EntryNameConflictError` |
 | `413` | The request body is too large | not included |
+| `429` | Too many requests from one client | not included |
 | `503` | The database cannot be reached | `DatabaseUnavailable` |
 
 ```json
@@ -211,8 +212,9 @@ For a `400` from validation, `message` is an array with one entry per problem.
 
 **Deleting a large folder** - `ON DELETE CASCADE` removes the whole subtree in one transaction, so a delete cannot leave orphans or finish halfway. The cost is that a very large subtree holds its locks for longer and can reach `DB_QUERY_TIMEOUT_MS`. The delete then rolls back and returns `500`. A larger deployment should mark the folder as deleted first and remove its contents in background batches
 
+**Rate limiting is per backend instance** - each client IP gets `RATE_LIMIT_PER_MINUTE` requests a minute (600 by default), then `429`. The counters live in memory, so several backend instances would each count separately, and a larger deployment should use a shared store such as Redis. `TRUST_PROXY_HOPS` must match the number of proxies in front of the backend: Docker Compose sets it to `1` for nginx, and it stays `0` otherwise so clients cannot forge their IP with `X-Forwarded-For`
+
 ## Known limitations
 
 - The frontend has no automated tests - only the backend has unit and end-to-end tests
-- There is no rate limiting - it should be added for a production environment
 - Folder depth is not limited - in windows there is no folder depth limit but there is a limit to path char length

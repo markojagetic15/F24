@@ -56,7 +56,7 @@ describe('database failures', () => {
     const moduleRef = await builder.compile();
     app = moduleRef.createNestApplication({ logger: false });
     configureApp(app);
-    await app.listen(0);
+    await app.listen(0, '127.0.0.1');
   };
 
   afterEach(async () => {
