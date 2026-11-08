@@ -21,7 +21,7 @@ describe('HTTP application', () => {
     }).compile();
     app = moduleRef.createNestApplication();
     configureApp(app);
-    await app.listen(0);
+    await app.listen(0, '127.0.0.1');
     prisma = app.get(PrismaService);
   });
 
