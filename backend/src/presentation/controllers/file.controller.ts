@@ -61,7 +61,7 @@ export class FilesController {
   }
 
   @Get('top')
-  async topTen(@Query() query: TopFilesQuery): Promise<File[]> {
-    return this.files.topTen(query.name);
+  async top(@Query() query: TopFilesQuery): Promise<File[]> {
+    return this.files.top(query.name);
   }
 }

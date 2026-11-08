@@ -38,7 +38,7 @@ export class FileService {
     return this.files.search(scope, name, page);
   }
 
-  async topTen(name: string): Promise<File[]> {
+  async top(name: string): Promise<File[]> {
     return this.files.findByName(name);
   }
 }

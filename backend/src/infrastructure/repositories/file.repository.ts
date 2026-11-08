@@ -20,6 +20,7 @@ import {
 } from '../database/prisma-errors.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { toFile } from './file.mapper.js';
+import { TOP_SEARCH_LIMIT } from '../../presentation/dto/file.dto.js';
 
 @Injectable()
 export class PostgresFileRepository implements FileRepository {
@@ -82,7 +83,7 @@ export class PostgresFileRepository implements FileRepository {
     const records = await this.prisma.file.findMany({
       where: { name: { startsWith: name.replace(/[\\%_]/g, '\\$&') } },
       orderBy: [{ name: 'asc' }, { id: 'asc' }],
-      take: 10,
+      take: TOP_SEARCH_LIMIT,
     });
     return records.map(toFile);
   }
