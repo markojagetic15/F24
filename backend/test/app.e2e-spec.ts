@@ -6,11 +6,6 @@ import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/configure-app.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 
-interface PageBody {
-  items: { id: string; name: string }[];
-  nextCursor: string | null;
-}
-
 describe('HTTP application', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
@@ -207,18 +202,15 @@ describe('HTTP application', () => {
         (names: string[]) =>
           prisma.folder.createMany({ data: names.map((name) => ({ name })) }),
       ],
-    ] as const)('GET /api/%s', (resource, seed) => {
-      const expectFullPage = (body: PageBody, size: number) => {
-        expect(body.items).toHaveLength(size);
-        expect(body.nextCursor).toBe(body.items[size - 1].id);
-      };
-
+    ])('GET /api/%s', (resource, seed) => {
       it('returns 50 items by default', async () => {
-        await seed(numberedNames(51));
+        const names = numberedNames(51);
+        await seed(names);
 
         const response = await api().get(`/api/${resource}`).expect(200);
 
-        expectFullPage(response.body as PageBody, 50);
+        expect(namesOf(response.body.items)).toEqual(names.slice(0, 50));
+        expect(response.body.nextCursor).toBe(names[49]);
       });
 
       it('accepts the smallest limit', async () => {
@@ -229,18 +221,20 @@ describe('HTTP application', () => {
           .query({ limit: 1 })
           .expect(200);
 
-        expectFullPage(response.body as PageBody, 1);
+        expect(namesOf(response.body.items)).toEqual(['a']);
       });
 
       it('accepts the largest limit', async () => {
-        await seed(numberedNames(201));
+        const names = numberedNames(201);
+        await seed(names);
 
         const response = await api()
           .get(`/api/${resource}`)
           .query({ limit: 200 })
           .expect(200);
 
-        expectFullPage(response.body as PageBody, 200);
+        expect(response.body.items).toHaveLength(200);
+        expect(response.body.nextCursor).toBe(names[199]);
       });
     });
   });

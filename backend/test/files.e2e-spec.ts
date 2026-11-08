@@ -38,7 +38,6 @@ describe('Files API', () => {
   const statusesOf = (responses: { status: number }[]) =>
     responses.map((response) => response.status).sort((a, b) => a - b);
   const namesOf = (items: { name: string }[]) => items.map((f) => f.name);
-  const idsOf = (items: { id: string }[]) => items.map((f) => f.id);
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -185,14 +184,12 @@ describe('Files API', () => {
   });
 
   describe('GET /api/files', () => {
-    it('lists only the files directly in the folder, newest first', async () => {
+    it('lists only the files directly in the folder, in name order', async () => {
       const parent = await createFolder('parent');
       const child = await createFolder('child', parent.id);
       const sibling = await createFolder('sibling');
-      const ids = [
-        (await createFile('b.txt', parent.id)).id,
-        (await createFile('a.txt', parent.id)).id,
-      ];
+      await createFile('b.txt', parent.id);
+      await createFile('a.txt', parent.id);
       await createFile('nested.txt', child.id);
       await createFile('elsewhere.txt', sibling.id);
       await createFile('root.txt');
@@ -201,20 +198,18 @@ describe('Files API', () => {
         .get('/api/files')
         .query({ parentId: parent.id })
         .expect(200);
-      expect(idsOf(response.body.items)).toEqual([...ids].sort().reverse());
+      expect(namesOf(response.body.items)).toEqual(['a.txt', 'b.txt']);
       expect(response.body.nextCursor).toBeNull();
     });
 
     it('lists the root when no parent is given', async () => {
       const folder = await createFolder('docs');
       await createFile('inside.txt', folder.id);
-      const ids = [
-        (await createFile('b.txt')).id,
-        (await createFile('a.txt')).id,
-      ];
+      await createFile('b.txt');
+      await createFile('a.txt');
 
       const response = await api().get('/api/files').expect(200);
-      expect(idsOf(response.body.items)).toEqual([...ids].sort().reverse());
+      expect(namesOf(response.body.items)).toEqual(['a.txt', 'b.txt']);
     });
 
     it('returns an empty page for an empty folder', async () => {
@@ -227,20 +222,16 @@ describe('Files API', () => {
     });
 
     it('respects the limit and points at the last returned file', async () => {
-      const ids = [
-        (await createFile('c.txt')).id,
-        (await createFile('a.txt')).id,
-        (await createFile('b.txt')).id,
-      ]
-        .sort()
-        .reverse();
+      await createFile('c.txt');
+      await createFile('a.txt');
+      await createFile('b.txt');
 
       const response = await api()
         .get('/api/files')
         .query({ limit: 2 })
         .expect(200);
-      expect(idsOf(response.body.items)).toEqual(ids.slice(0, 2));
-      expect(response.body.nextCursor).toBe(ids[1]);
+      expect(namesOf(response.body.items)).toEqual(['a.txt', 'b.txt']);
+      expect(response.body.nextCursor).toBe('b.txt');
     });
 
     it('has no next page when the last page is exactly full', async () => {
@@ -256,9 +247,8 @@ describe('Files API', () => {
 
     it('walks every page without gaps or repeats', async () => {
       const folder = await createFolder('docs');
-      const ids: string[] = [];
       for (const name of ['d', 'a', 'e', 'c', 'b']) {
-        ids.push((await createFile(name, folder.id)).id);
+        await createFile(name, folder.id);
       }
 
       const seen: string[] = [];
@@ -272,11 +262,11 @@ describe('Files API', () => {
             ...(cursor ? { cursor } : {}),
           })
           .expect(200);
-        seen.push(...idsOf(response.body.items));
+        seen.push(...namesOf(response.body.items));
         cursor = response.body.nextCursor;
       } while (cursor);
 
-      expect(seen).toEqual([...ids].sort().reverse());
+      expect(seen).toEqual(['a', 'b', 'c', 'd', 'e']);
     });
 
     it('returns 404 for a parent that does not exist', async () => {
@@ -296,7 +286,6 @@ describe('Files API', () => {
       ['empty parent', 'parentId='],
       ['NUL byte in cursor', 'cursor=a%00'],
       ['repeated cursor', 'cursor=a&cursor=b'],
-      ['a name used as the cursor', 'cursor=b.txt'],
       ['unknown parameter', 'admin=true'],
     ])('returns 400 for %s', async (_label, query) => {
       await api().get(`/api/files?${query}`).expect(400);
@@ -521,7 +510,7 @@ describe('Files API', () => {
       return response.body as { id: string; name: string }[];
     };
 
-    it('returns at most 10 matches', async () => {
+    it('returns the first 10 matches by name across all folders', async () => {
       const first = await createFolder('first');
       const second = await createFolder('second');
       const shuffled = [12, 3, 7, 1, 11, 5, 9, 2, 10, 4, 8, 6];
@@ -534,18 +523,19 @@ describe('Files API', () => {
       }
       await createFile('other');
 
-      const found = namesOf(await top('rep'));
-      expect(found).toHaveLength(10);
-      expect(new Set(found).size).toBe(10);
-      for (const name of found) expect(name).toMatch(/^rep\d{2}$/);
+      expect(namesOf(await top('rep'))).toEqual(
+        Array.from(
+          { length: 10 },
+          (_, i) => `rep${String(i + 1).padStart(2, '0')}`,
+        ),
+      );
     });
 
-    it('finds fewer than 10 across all folders, and an empty array for none', async () => {
-      const folder = await createFolder('docs');
+    it('returns fewer than 10 when fewer match, and an empty array for none', async () => {
       await createFile('abc');
-      await createFile('abd', folder.id);
+      await createFile('abd');
 
-      expect(namesOf(await top('ab')).sort()).toEqual(['abc', 'abd']);
+      expect(namesOf(await top('ab'))).toEqual(['abc', 'abd']);
       expect(await top('zzz')).toEqual([]);
     });
 
@@ -564,6 +554,13 @@ describe('Files API', () => {
 
       expect(namesOf(await top('rep'))).toEqual(['report.pdf']);
       expect(namesOf(await top('Rep'))).toEqual(['Report.pdf']);
+    });
+
+    it('breaks ties between equal names by id, not by insertion', async () => {
+      const ids = await createSameNameWithDescendingIds('same');
+
+      const found = await top('sam');
+      expect(found.map((file) => file.id)).toEqual(ids);
     });
 
     it.each([
@@ -628,7 +625,7 @@ describe('Files API', () => {
     });
   });
 
-  describe('file indexes', () => {
+  describe('file name ordering and indexes', () => {
     const planFor = async (query: Prisma.Sql) => {
       const rows = await prisma.$transaction(async (tx) => {
         await tx.$executeRaw`SET LOCAL enable_seqscan = off`;
@@ -637,16 +634,17 @@ describe('Files API', () => {
       return rows.map((row) => row['QUERY PLAN']).join('\n');
     };
 
-    it('serves a folder listing from the parent index', async () => {
-      const plan = await planFor(
-        Prisma.sql`EXPLAIN SELECT id FROM files WHERE parent_id = ${randomUUID()}::uuid ORDER BY id DESC LIMIT 51`,
-      );
-      expect(plan).toContain('files_parent_id_id_idx');
+    it('orders names bytewise, so upper case comes first', async () => {
+      await createFile('apple');
+      await createFile('Zebra');
+
+      const response = await api().get('/api/files').expect(200);
+      expect(namesOf(response.body.items)).toEqual(['Zebra', 'apple']);
     });
 
     it('serves a prefix search from the name index', async () => {
       const plan = await planFor(
-        Prisma.sql`EXPLAIN SELECT id FROM files WHERE name LIKE 'abc%' LIMIT 10`,
+        Prisma.sql`EXPLAIN SELECT id FROM files WHERE name LIKE 'abc%' ORDER BY name, id LIMIT 10`,
       );
       expect(plan).toContain('files_name_id_idx');
       expect(plan).toMatch(/Index Cond: .*name.*>=/);

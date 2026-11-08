@@ -1,10 +1,12 @@
+import 'dotenv/config';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  resolve: { tsconfigPaths: true },
   test: {
     globals: true,
-    root: './',
-    include: ['**/*.e2e-spec.ts'],
+    include: ['test/**/*.e2e-spec.ts'],
+    globalSetup: ['test/support/global-setup.ts'],
+    fileParallelism: false,
+    env: { DATABASE_URL: process.env.TEST_DATABASE_URL ?? '' },
   },
 });

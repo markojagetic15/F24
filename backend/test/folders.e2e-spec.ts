@@ -22,7 +22,6 @@ describe('Folders API', () => {
   const statusesOf = (responses: { status: number }[]) =>
     responses.map((response) => response.status).sort((a, b) => a - b);
   const namesOf = (items: { name: string }[]) => items.map((f) => f.name);
-  const idsOf = (items: { id: string }[]) => items.map((f) => f.id);
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -157,11 +156,9 @@ describe('Folders API', () => {
   });
 
   describe('GET /api/folders', () => {
-    it('lists only direct children, newest first', async () => {
+    it('lists only direct children, in name order', async () => {
       const parent = await createFolder('parent');
       const child = await createFolder('b', parent.id);
-      // Ids are time-ordered to the millisecond
-      await new Promise((resolve) => setTimeout(resolve, 2));
       await createFolder('a', parent.id);
       await createFolder('nested', child.id);
 
@@ -171,6 +168,14 @@ describe('Folders API', () => {
         .expect(200);
       expect(namesOf(response.body.items)).toEqual(['a', 'b']);
       expect(response.body.nextCursor).toBeNull();
+    });
+
+    it('orders names bytewise, so upper case comes first', async () => {
+      await createFolder('apple');
+      await createFolder('Zebra');
+
+      const response = await api().get('/api/folders').expect(200);
+      expect(namesOf(response.body.items)).toEqual(['Zebra', 'apple']);
     });
 
     it('lists the root when no parent is given', async () => {
@@ -183,9 +188,7 @@ describe('Folders API', () => {
 
     it('walks every page without gaps or repeats', async () => {
       const names = ['a', 'b', 'c', 'd', 'e'];
-      const folders = await Promise.all(
-        names.map((name) => createFolder(name)),
-      );
+      await Promise.all(names.map((name) => createFolder(name)));
 
       const seen: string[] = [];
       let cursor: string | null = null;
@@ -194,11 +197,11 @@ describe('Folders API', () => {
           .get('/api/folders')
           .query({ limit: 2, ...(cursor ? { cursor } : {}) })
           .expect(200);
-        seen.push(...idsOf(response.body.items));
+        seen.push(...namesOf(response.body.items));
         cursor = response.body.nextCursor;
       } while (cursor);
 
-      expect(seen).toEqual(idsOf(folders).sort().reverse());
+      expect(seen).toEqual(names);
     });
 
     it('returns 404 for a parent that does not exist', async () => {
@@ -218,7 +221,6 @@ describe('Folders API', () => {
       ['empty parent', 'parentId='],
       ['NUL byte in cursor', 'cursor=a%00'],
       ['repeated cursor', 'cursor=a&cursor=b'],
-      ['a name used as the cursor', 'cursor=docs'],
       ['unknown parameter', 'admin=true'],
     ])('returns 400 for %s', async (_label, query) => {
       await api().get(`/api/folders?${query}`).expect(400);
@@ -304,20 +306,6 @@ describe('Folders API', () => {
         expect([201, 204, 404]).toContain(response.status);
       }
       expect(await prisma.folder.count()).toBe(0);
-    });
-  });
-
-  describe('folder indexes', () => {
-    it('serves a folder listing from the parent index', async () => {
-      const rows = await prisma.$transaction(async (tx) => {
-        await tx.$executeRaw`SET LOCAL enable_seqscan = off`;
-        return tx.$queryRaw<
-          { 'QUERY PLAN': string }[]
-        >`EXPLAIN SELECT id FROM folders WHERE parent_id = ${randomUUID()}::uuid ORDER BY id DESC LIMIT 51`;
-      });
-      expect(rows.map((row) => row['QUERY PLAN']).join('\n')).toContain(
-        'folders_parent_id_id_idx',
-      );
     });
   });
 

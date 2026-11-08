@@ -98,40 +98,38 @@ describe('PostgresFolderRepository', () => {
   });
 
   describe('listChildren', () => {
-    it('asks for one extra row, newest first, from the start', async () => {
+    it('asks for one extra row, in name order, from the start', async () => {
       folder.findMany.mockResolvedValue([]);
 
       await repository.listChildren(PARENT_ID, { limit: 2 });
 
       expect(folder.findMany).toHaveBeenCalledWith({
         where: { parentId: PARENT_ID },
-        orderBy: { id: 'desc' },
+        orderBy: { name: 'asc' },
         take: 3,
       });
     });
 
-    it('continues below the cursor id', async () => {
+    it('continues after the cursor name', async () => {
       folder.findMany.mockResolvedValue([]);
 
-      await repository.listChildren(null, { limit: 2, cursor: ID });
+      await repository.listChildren(null, { limit: 2, cursor: 'b' });
 
       expect(folder.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { parentId: null, id: { lt: ID } },
+          where: { parentId: null, name: { gt: 'b' } },
         }),
       );
     });
 
-    it('uses the last returned id as the next cursor', async () => {
-      folder.findMany.mockResolvedValue(
-        ['1', '2', '3'].map((id) => ({ ...recordNamed('docs'), id })),
-      );
+    it('uses the last returned name as the next cursor', async () => {
+      folder.findMany.mockResolvedValue(['a', 'b', 'c'].map(recordNamed));
 
       const page = await repository.listChildren(null, { limit: 2 });
 
-      expect(page.items.map((item) => item.id)).toEqual(['1', '2']);
+      expect(page.items.map((item) => item.name)).toEqual(['a', 'b']);
       expect(page.items[0]).toBeInstanceOf(Folder);
-      expect(page.nextCursor).toBe('2');
+      expect(page.nextCursor).toBe('b');
     });
   });
 

@@ -26,6 +26,26 @@ export function isValidName(name: string, maxLength: number): boolean {
   );
 }
 
+// A prefix is only the start of a name, so `..` or a trailing space are fine
+export function isValidNamePrefix(prefix: string, maxLength: number): boolean {
+  return (
+    prefix.length > 0 &&
+    prefix.length <= maxLength &&
+    !FORBIDDEN_CHARACTERS.test(prefix)
+  );
+}
+
+export const IsNamePrefix = (maxLength: number): PropertyDecorator =>
+  ValidateBy({
+    name: 'isNamePrefix',
+    validator: {
+      validate: (value: unknown) =>
+        typeof value === 'string' && isValidNamePrefix(value, maxLength),
+      defaultMessage: () =>
+        `$property must be 1-${maxLength} characters, without control characters, slashes or backslashes`,
+    },
+  });
+
 export const IsName = (maxLength: number): PropertyDecorator =>
   ValidateBy({
     name: 'isName',

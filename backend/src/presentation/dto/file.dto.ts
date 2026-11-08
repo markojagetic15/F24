@@ -1,6 +1,17 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
-import { IsName, MAX_FILE_NAME_LENGTH } from '../validators/name.validator.js';
+import {
+  IsInt,
+  IsOptional,
+  IsUUID,
+  Max,
+  Min,
+  ValidateIf,
+} from 'class-validator';
+import {
+  IsName,
+  IsNamePrefix,
+  MAX_FILE_NAME_LENGTH,
+} from '../../domain/validators/name.validator.js';
 
 export const ROOT_PARENT_ID = 'root';
 export const TOP_SEARCH_LIMIT = 10;
@@ -26,8 +37,9 @@ export class ListFilesQuery {
   @Max(200)
   limit: number = 50;
 
+  // The list is ordered by name, so its cursor is a name
   @IsOptional()
-  @IsUUID()
+  @IsName(MAX_FILE_NAME_LENGTH)
   cursor?: string;
 }
 
@@ -35,7 +47,10 @@ export class SearchFilesQuery {
   @IsName(MAX_FILE_NAME_LENGTH)
   name: string;
 
-  @IsOptional()
+  @ValidateIf(
+    (query: SearchFilesQuery) =>
+      query.parentId !== undefined && query.parentId !== ROOT_PARENT_ID,
+  )
   @IsUUID()
   parentId?: string;
 
@@ -52,6 +67,6 @@ export class SearchFilesQuery {
 }
 
 export class TopFilesQuery {
-  @IsName(MAX_FILE_NAME_LENGTH)
-  name: string;
+  @IsNamePrefix(MAX_FILE_NAME_LENGTH)
+  prefix: string;
 }
