@@ -9,7 +9,10 @@ import {
   type PageRequest,
   toPage,
 } from '../../domain/pagination.js';
-import type { FileRepository, FileSearchScope } from '../../domain/repositories/file.interface.js';
+import type {
+  FileRepository,
+  FileSearchScope,
+} from '../../domain/repositories/file.interface.js';
 import {
   isForeignKeyViolation,
   isRecordNotFound,
@@ -17,6 +20,7 @@ import {
 } from '../database/prisma-errors.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { toFile } from './file.mapper.js';
+import { TOP_SEARCH_LIMIT } from '../../presentation/dto/file.dto.js';
 
 @Injectable()
 export class PostgresFileRepository implements FileRepository {
@@ -73,5 +77,14 @@ export class PostgresFileRepository implements FileRepository {
       take: page.limit + 1,
     });
     return toPage(records.map(toFile), page.limit, (file) => file.id);
+  }
+
+  async findByName(name: string): Promise<File[]> {
+    const records = await this.prisma.file.findMany({
+      where: { name: { startsWith: name.replace(/[\\%_]/g, '\\$&') } },
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
+      take: TOP_SEARCH_LIMIT,
+    });
+    return records.map(toFile);
   }
 }

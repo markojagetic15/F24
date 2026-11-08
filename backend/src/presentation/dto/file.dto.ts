@@ -3,6 +3,7 @@ import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
 import { IsName, MAX_FILE_NAME_LENGTH } from '../validators/name.validator.js';
 
 export const ROOT_PARENT_ID = 'root';
+export const TOP_SEARCH_LIMIT = 10;
 
 export class CreateFileBody {
   @IsName(MAX_FILE_NAME_LENGTH)
@@ -48,4 +49,9 @@ export class SearchFilesQuery {
   @IsOptional()
   @IsUUID()
   cursor?: string;
+}
+
+export class TopFilesQuery {
+  @IsName(MAX_FILE_NAME_LENGTH)
+  name: string;
 }

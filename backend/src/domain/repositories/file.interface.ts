@@ -12,4 +12,5 @@ export interface FileRepository {
     name: string,
     page: PageRequest,
   ): Promise<Page<File>>;
+  findByName(name: string): Promise<File[]>;
 }
