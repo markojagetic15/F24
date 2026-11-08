@@ -1,7 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { File } from '../domain/entities/file.entity.js';
 import type { Page, PageRequest } from '../domain/pagination.js';
-import type { FileRepository, FileSearchScope } from '../domain/repositories/file.interface.js';
+import type {
+  FileRepository,
+  FileSearchScope,
+} from '../domain/repositories/file.interface.js';
 import { FolderService } from './folder.service.js';
 
 @Injectable()
@@ -33,5 +36,9 @@ export class FileService {
       await this.folders.doesFolderExist(scope.parentId);
     }
     return this.files.search(scope, name, page);
+  }
+
+  async topTen(name: string): Promise<File[]> {
+    return this.files.findByName(name);
   }
 }

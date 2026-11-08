@@ -46,8 +46,8 @@ export class PostgresFolderRepository implements FolderRepository {
   }
 
   async listChildren(
-      parentId: string | null,
-      page: PageRequest,
+    parentId: string | null,
+    page: PageRequest,
   ): Promise<Page<Folder>> {
     const records = await this.prisma.folder.findMany({
       where: {

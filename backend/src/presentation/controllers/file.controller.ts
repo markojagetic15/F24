@@ -11,7 +11,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { FileService } from '../../application/file.service.js';
-import { CreateFileBody, ListFilesQuery, ROOT_PARENT_ID, SearchFilesQuery } from '../dto/file.dto.js';
+import {
+  CreateFileBody,
+  ListFilesQuery,
+  ROOT_PARENT_ID,
+  SearchFilesQuery,
+  TopFilesQuery,
+} from '../dto/file.dto.js';
 import type { File } from '../../domain/entities/file.entity.js';
 import type { Page } from '../../domain/pagination.js';
 import { FileSearchScope } from '../../domain/repositories/file.interface.js';
@@ -19,7 +25,7 @@ import { FileSearchScope } from '../../domain/repositories/file.interface.js';
 function toSearchScope(parentId?: string): FileSearchScope {
   if (parentId === undefined) {
     return 'all';
-  };
+  }
   return { parentId: parentId === ROOT_PARENT_ID ? null : parentId };
 }
 
@@ -52,5 +58,10 @@ export class FilesController {
       limit: query.limit,
       cursor: query.cursor,
     });
+  }
+
+  @Get('top')
+  async topTen(@Query() query: TopFilesQuery): Promise<File[]> {
+    return this.files.topTen(query.name);
   }
 }

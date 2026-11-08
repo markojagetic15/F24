@@ -1,14 +1,14 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    HttpStatus,
-    Param,
-    ParseUUIDPipe,
-    Post,
-    Query,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
 } from '@nestjs/common';
 import { FolderService } from '../../application/folder.service.js';
 import type { Folder } from '../../domain/entities/folder.entity.js';
@@ -26,10 +26,10 @@ export class FoldersController {
 
   @Get()
   async list(@Query() query: ListFoldersQuery): Promise<Page<Folder>> {
-      return this.folders.listChildren(query.parentId ?? null, {
-          limit: query.limit,
-          cursor: query.cursor,
-      });
+    return this.folders.listChildren(query.parentId ?? null, {
+      limit: query.limit,
+      cursor: query.cursor,
+    });
   }
 
   @Get(':id')

@@ -13,9 +13,9 @@ export interface Page<T> {
 }
 
 export function toPage<T>(
-    rows: T[],
-    limit: number,
-    cursorOf: (item: T) => string,
+  rows: T[],
+  limit: number,
+  cursorOf: (item: T) => string,
 ): Page<T> {
   const items = rows.slice(0, limit);
   return {

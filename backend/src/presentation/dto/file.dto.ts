@@ -49,3 +49,8 @@ export class SearchFilesQuery {
   @IsUUID()
   cursor?: string;
 }
+
+export class TopFilesQuery {
+  @IsName(MAX_FILE_NAME_LENGTH)
+  name: string;
+}
