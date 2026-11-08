@@ -42,3 +42,23 @@ frontend/
 ## API Documentation
 
 // TODO: Will be made with swagger?
+
+## Trade-offs
+
+**Offset vs Cursor** - an offset makes the database read and discard every skipped row, and pages shift when rows change. A cursor continues from a position in the index. The cost is that the API cannot jump to an arbitrary page (which we don't need)
+
+**NestJs** - not a trade-off but a bit of an overkill for this kind of project but having scalability in mind, positive trade-off in the end
+
+**DDD for backend** - also, but of an overkill for this kind of project but same a nestJs positive trade-off for the same reason
+
+**Back button vs Breadcrumbs** - Back button is chosen for simplicity but for example Windows uses both for better UX
+
+**A file and a folder can have the same name in one location**  - same as Windows - there can be folder name `test` and in the same place file named `test.txt`
+
+**Search is case-sensitive** - this keeps it simple and index-backed. Case-insensitive search would need a separate index and a decision on Unicode case rules
+
+## Known limitations
+
+- After creating or deleting an entry, lists return to the first page.
+- There is no rate limiting - it should be added for a production environment
+- Folder depth is not limited - in windows there is no folder depth limit but there is a limit to path char length
