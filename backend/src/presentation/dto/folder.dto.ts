@@ -26,7 +26,8 @@ export class ListFoldersQuery {
   @Max(200)
   limit: number = 50;
 
+  // The list is ordered by name, so its cursor is a name
   @IsOptional()
-  @IsUUID()
+  @IsName(MAX_FOLDER_NAME_LENGTH)
   cursor?: string;
 }

@@ -37,8 +37,9 @@ export class ListFilesQuery {
   @Max(200)
   limit: number = 50;
 
+  // The list is ordered by name, so its cursor is a name
   @IsOptional()
-  @IsUUID()
+  @IsName(MAX_FILE_NAME_LENGTH)
   cursor?: string;
 }
 

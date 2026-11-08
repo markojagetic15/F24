@@ -45,12 +45,12 @@ export class PostgresFileRepository implements FileRepository {
     const records = await this.prisma.file.findMany({
       where: {
         parentId,
-        ...(page.cursor === undefined ? {} : { id: { lt: page.cursor } }),
+        ...(page.cursor === undefined ? {} : { name: { gt: page.cursor } }),
       },
-      orderBy: { id: 'desc' },
+      orderBy: { name: 'asc' },
       take: page.limit + 1,
     });
-    return toPage(records.map(toFile), page.limit, (file) => file.id);
+    return toPage(records.map(toFile), page.limit, (file) => file.name);
   }
 
   async delete(id: string): Promise<void> {
@@ -82,6 +82,7 @@ export class PostgresFileRepository implements FileRepository {
   async findByName(name: string): Promise<File[]> {
     const records = await this.prisma.file.findMany({
       where: { name: { startsWith: name.replace(/[\\%_]/g, '\\$&') } },
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
       take: TOP_SEARCH_LIMIT,
     });
     return records.map(toFile);

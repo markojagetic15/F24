@@ -19,7 +19,6 @@ model Folder {
   files    File[]
 
   @@unique([parentId, name])
-  @@index([parentId, id])
   @@map("folders")
 }
 
@@ -34,6 +33,5 @@ model File {
 
   @@unique([parentId, name])
   @@index([name, id])
-  @@index([parentId, id])
   @@map("files")
 }

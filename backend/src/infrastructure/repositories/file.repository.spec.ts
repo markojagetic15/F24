@@ -83,36 +83,36 @@ describe('PostgresFileRepository', () => {
   });
 
   describe('list', () => {
-    it('asks for one extra row, newest first, from the start', async () => {
+    it('asks for one extra row, in name order, from the start', async () => {
       await repository.list(PARENT_ID, { limit: 2 });
 
       expect(file.findMany).toHaveBeenCalledWith({
         where: { parentId: PARENT_ID },
-        orderBy: { id: 'desc' },
+        orderBy: { name: 'asc' },
         take: 3,
       });
     });
 
-    it('continues below the cursor id', async () => {
-      await repository.list(null, { limit: 2, cursor: ID });
+    it('continues after the cursor name', async () => {
+      await repository.list(null, { limit: 2, cursor: 'b.txt' });
 
       expect(file.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { parentId: null, id: { lt: ID } },
+          where: { parentId: null, name: { gt: 'b.txt' } },
         }),
       );
     });
 
-    it('uses the last returned id as the next cursor', async () => {
+    it('uses the last returned name as the next cursor', async () => {
       file.findMany.mockResolvedValue(
-        ['1', '2', '3'].map((id) => recordOf(id, `${id}.txt`)),
+        ['a', 'b', 'c'].map((name) => recordOf(`id-${name}`, name)),
       );
 
       const page = await repository.list(null, { limit: 2 });
 
-      expect(page.items.map((item) => item.id)).toEqual(['1', '2']);
+      expect(page.items.map((item) => item.name)).toEqual(['a', 'b']);
       expect(page.items[0]).toBeInstanceOf(File);
-      expect(page.nextCursor).toBe('2');
+      expect(page.nextCursor).toBe('b');
     });
   });
 
@@ -183,11 +183,12 @@ describe('PostgresFileRepository', () => {
   });
 
   describe('findByName', () => {
-    it('takes the limit of matches, without sorting them', async () => {
+    it('takes the top matches by name, then id', async () => {
       await repository.findByName('rep');
 
       expect(file.findMany).toHaveBeenCalledWith({
         where: { name: { startsWith: 'rep' } },
+        orderBy: [{ name: 'asc' }, { id: 'asc' }],
         take: TOP_SEARCH_LIMIT,
       });
     });
