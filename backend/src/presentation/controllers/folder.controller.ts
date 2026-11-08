@@ -26,10 +26,10 @@ export class FoldersController {
 
   @Get()
   async list(@Query() query: ListFoldersQuery): Promise<Page<Folder>> {
-    return this.folders.listChildren(query.parentId ?? null, {
-      limit: query.limit,
-      offset: query.offset ?? 0,
-    });
+      return this.folders.listChildren(query.parentId ?? null, {
+          limit: query.limit,
+          cursor: query.cursor,
+      });
   }
 
   @Get(':id')
