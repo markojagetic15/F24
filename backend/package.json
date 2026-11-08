@@ -22,6 +22,7 @@
     "prebuild": "prisma generate",
     "prestart:dev": "prisma generate",
     "prestart:debug": "prisma generate",
+    "pretest": "prisma generate",
     "pretest:e2e": "prisma generate"
   },
   "dependencies": {
